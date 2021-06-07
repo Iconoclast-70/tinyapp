@@ -8,6 +8,12 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.set('view engine', 'ejs');
+
+app.get('/', function(req, res) {
+  res.render('pages/index');
+});
+
 
 app.get("/", (req, res) => {
   //First incoming request for GET /
