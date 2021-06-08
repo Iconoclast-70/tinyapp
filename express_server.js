@@ -15,6 +15,12 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL]; // let longURL = urlDatabase.b2xVn2
+  const templateVars = { shortURL: req.params.shortURL, longURL: longURL };
+  res.render("urls_show", templateVars);
+});
+
 
 app.get("/", (req, res) => {
   //First incoming request for GET /
