@@ -16,8 +16,10 @@ const urlDatabase = {
 };
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const shortURL = generateRandomString();
+  const reqLongURL = req.body.longURL;
+  urlDatabase[shortURL] = reqLongURL;
+  res.redirect("/urls/" + shortURL);     
 });
 
 app.get("/urls/new", (req, res) => {
@@ -30,14 +32,17 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL]; // let longURL = urlDatabase.b2xVn2
+  let longURL = urlDatabase[req.params.shortURL]; 
   const templateVars = { shortURL: req.params.shortURL, longURL: longURL };
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
 
 app.get("/", (req, res) => {
-  //First incoming request for GET /
   console.log(`first incoming request for ${req.method} ${req.url}`);
   res.send("Hello!");
 });
