@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -65,6 +64,15 @@ app.post("/urls/:shortURL/delete", (req,res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect("/urls");   
+});
+
+//Edit URL
+app.post("/urls/:shortURL", (req,res) => {
+  const longURL = req.body.longURL;
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = longURL;
+  console.log(urlDatabase);
+  res.redirect("/urls");
 });
 
 app.get("/u/:shortURL", (req, res) => {
