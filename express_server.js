@@ -1,6 +1,9 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8080; // default port 8080
+
+app.use(cookieParser());
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
@@ -23,24 +26,28 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {urls: urlDatabase, username: req.cookies.username};
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies.username};
   res.render("urls_index", templateVars);
 });
 
 app.get("/", (req, res) => {
+  const templateVars = {username: req.cookies.username};
   console.log(`first incoming request for ${req.method} ${req.url}`);
   res.send("Hello!");
 });
 
 app.get("/urls.json", (req, res) => {
+  const templateVars = {username: req.cookies.username};
   res.json(urlDatabase);
 });
 
 app.get("/hello", (req, res) => {
+  const templateVars = {username: req.cookies.username};
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
@@ -53,9 +60,20 @@ app.get("/set", (req, res) => {
   res.send(`a = ${a}`);
  });
 
+ app.post("/login", (req,res) => {
+   res.cookie("username", req.body.username);
+   res.render("urls_index", {urls: urlDatabase, username: req.body.username});
+   //const cookie = req.cookie = req.us
+ });
+
+ app.post("/logout", (req,res) => {
+  res.clearCookie("username");
+  res.render("urls_index", {urls: urlDatabase, username: req.body.username});
+ });
+
  app.get("/urls/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL]; 
-  const templateVars = { shortURL: req.params.shortURL, longURL: longURL };
+  const templateVars = { shortURL: req.params.shortURL, longURL: longURL,  username: req.cookies.username};
   res.render("urls_show", templateVars);
 });
 
@@ -71,7 +89,6 @@ app.post("/urls/:shortURL", (req,res) => {
   const longURL = req.body.longURL;
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL] = longURL;
-  console.log(urlDatabase);
   res.redirect("/urls");
 });
 
