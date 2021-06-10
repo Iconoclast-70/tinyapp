@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -139,13 +140,18 @@ app.post("/register", (req,res) => {
   }
   
   if ( !getUserByEmail(email) && (email !== "" && password !== "") ) {
-      console.log("all clear");
-      const user = {id, email, password};
-      users[id] = user;
-      res.cookie('user_id', user.id);
-      res.redirect("/urls");
+      let user = {};
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(password, salt, (err, hash) => {
+          user = {id, email, password: hash};
+          users[id] = user;
+          console.log(users);
+          res.cookie('user_id', user.id);
+          res.redirect("/urls");
+        });
+      });
   }
-  
+  console.log(users);
 });
 
 // ******** login / logout end routes ********************************************************
@@ -161,17 +167,22 @@ app.post("/login", (req,res) => {
   const currentUser = getUserByEmail(req.body.email);
 
   if (!currentUser) {
-    return res.status(403).send("User Not Found");
+    return res.status(403).send("User Not Found");ƒ
   }
 
-  if ((users[currentUser].password !== req.body.password)) {
-    return res.status(403).send("Password does not match");
-  } 
-  
-  if (currentUser) {
-    res.cookie("user_id",users[currentUser].id);
-    res.redirect("/urls/"); 
-  }
+  console.log(req.body.password,currentUser);
+  bcrypt.compare(req.body.password, users[currentUser].password, (err, result) => {
+    if (!result) {
+      // if the passwords don't match, send back an error response
+      return res.status(403).send('password is not correct');
+    }
+
+    if (currentUser) {
+      res.cookie("user_id",users[currentUser].id);
+      res.redirect("/urls/"); 
+    }
+
+  });
 
 });
 
