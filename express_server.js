@@ -37,12 +37,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "$2a$10$ED8DvcoWW91XyKg9lKs3.u6atsrJ8B4vVrn15lc.ItFQ3clnWPhT2"
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "$2a$10$Y6VZyQJGPGbHduWuwKNcUOw2D2g3On/Rx1utOzK..1NBFZa7FtjLq"
   }
 };
 
@@ -56,6 +56,7 @@ const urlDatabase = {
 
 // End Route for creating a new URL and adding it to urlDatabase **************************//
 app.post("/urls", (req, res) => {
+
   if (req.session.user_id !== "" || req.session.user_id !== undefined) {
     const shortURL = generateRandomString();
     const reqLongURL = req.body.longURL;
@@ -67,6 +68,7 @@ app.post("/urls", (req, res) => {
 
 // End Route for displaying the new URL page and adding it to urlDatabase *****************//
 app.get("/urls/new", (req, res) => {
+
   if (req.session.user_id === "" || req.session.user_id === undefined) {
     res.redirect("/login");
   } else {
@@ -146,7 +148,7 @@ app.post("/login", (req,res) => {
       return res.status(403).send('password is not correct');
     }
     if (currentUser) {
-      req.session.user_id = currentUser.id;
+      req.session.user_id = users[currentUser].id;
       res.redirect("/urls/");
     }
   });
