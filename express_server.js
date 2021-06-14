@@ -98,8 +98,12 @@ app.get("/urls", (req, res) => {
 // ******** Registration end routes ********************************************************//
 
 app.get("/register", (req,res) => {
-  const templateVars = {user: users};
-  res.render("register", templateVars);
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = {user: users};
+    res.render("register", templateVars);
+  }
 });
 
 // Register a new User **********************************************************************//
@@ -136,9 +140,14 @@ app.post("/register", (req,res) => {
 
 // ******** login / logout end routes *********************************************************//
 app.get("/login", (req,res) => {
-  const currentUser = users[req.session.user_id];
-  const templateVars = {user: currentUser};
-  res.render("login", templateVars);
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    const currentUser = users[req.session.user_id];
+    const templateVars = {user: currentUser};
+    res.render("login", templateVars);
+  }
+
 });
 
 app.post("/login", (req,res) => {
@@ -156,6 +165,7 @@ app.post("/login", (req,res) => {
     }
   });
 });
+
 app.post("/logout", (req,res) => {
   req.session = null;
   res.redirect("/urls");
@@ -165,10 +175,16 @@ app.post("/logout", (req,res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (req.session.user_id) {
-    let longURL = urlDatabase[req.params.shortURL];
-    const currentUser = users[req.session.user_id];
-    const templateVars = { shortURL: req.params.shortURL, longURL: longURL, user: currentUser };
-    res.render("urls_show", templateVars);
+
+    if (Object.keys(urlDatabase).includes(req.params.shortURL)) {
+      let longURL = urlDatabase[req.params.shortURL];
+      const currentUser = users[req.session.user_id];
+      const templateVars = { shortURL: req.params.shortURL, longURL: longURL, user: currentUser };
+      res.render("urls_show", templateVars);
+    } else {
+      return res.status(400).send('URL Does Not Exist.');
+    }
+
   } else {
     return res.redirect("/login");
   }
@@ -208,7 +224,6 @@ app.post("/urls/:shortURL", (req,res) => {
     res.redirect("/login");
   }
   
-
 });
 
 // ******** Redirection to longURL from the show page
@@ -223,6 +238,14 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+app.get("/", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
+
 // TEST End Routes *******************************************************************************//
 
 /*
@@ -230,11 +253,7 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/", (req, res) => {
-  const templateVars = {user: users};
-  console.log(`first incoming request for ${req.method} ${req.url}`);
-  res.send("Hello!");
-});
+
 
 app.get("/hello", (req, res) => {
   const templateVars = {username: req.session.username};
