@@ -57,32 +57,35 @@ const urlDatabase = {
 // End Route for creating a new URL and adding it to urlDatabase **************************//
 app.post("/urls", (req, res) => {
 
-  if (req.session.user_id !== "" || req.session.user_id !== undefined) {
+  if (req.session.user_id) {
     const shortURL = generateRandomString();
     const reqLongURL = req.body.longURL;
     const newURL = { longURL: reqLongURL, userID: req.session.user_id };
     urlDatabase[shortURL] = newURL;
     res.redirect("/urls/" + shortURL);
+  } else {
+    res.redirect("/login");
   }
 });
 
 // End Route for displaying the new URL page and adding it to urlDatabase *****************//
 app.get("/urls/new", (req, res) => {
 
-  if (req.session.user_id === "" || req.session.user_id === undefined) {
-    res.redirect("/login");
-  } else {
+  if (req.session.user_id) {
     const currentUser = users[req.session.user_id];
     const templateVars = {urls: urlDatabase, user: currentUser};
     res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
   }
+
 });
 
 // End Route for displaying the URLs belonging the current logged in user= ****************//
 app.get("/urls", (req, res) => {
   const currentUser = users[req.session.user_id];
   let filteredURLS = {};
-  if (req.session.user_id !== "" || req.session.user_id !== undefined) {
+  if (req.session.user_id) {
     filteredURLS = currentUserURLS(req.session.user_id);
     const templateVars = { urls: filteredURLS, user: currentUser};
     res.render("urls_index", templateVars);
@@ -161,10 +164,15 @@ app.post("/logout", (req,res) => {
 // ******** Short URL end routes****************************************************************//
 
 app.get("/urls/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  const currentUser = users[req.session.user_id];
-  const templateVars = { shortURL: req.params.shortURL, longURL: longURL, user: currentUser };
-  res.render("urls_show", templateVars);
+  if (req.session.user_id) {
+    let longURL = urlDatabase[req.params.shortURL];
+    const currentUser = users[req.session.user_id];
+    const templateVars = { shortURL: req.params.shortURL, longURL: longURL, user: currentUser };
+    res.render("urls_show", templateVars);
+  } else {
+    return res.redirect("/login");
+  }
+
 });
 
 //Delete URL ***********************************************************************************//
@@ -175,7 +183,7 @@ app.post("/urls/:shortURL/delete", (req,res) => {
     return res.status(400).send('You are not authorized to delete URLs');
   }
 
-  if (req.session.user_id !== "" || req.session.user_id !== undefined) {
+  if (req.session.user_id) {
     const shortURL = req.params.shortURL;
     delete urlDatabase[shortURL];
     res.redirect("/urls");
@@ -190,13 +198,17 @@ app.post("/urls/:shortURL", (req,res) => {
     return res.status(400).send('You are not authorized to edit URLs');
   }
 
-  if (req.session.user_id !== "" || req.session.user_id !== undefined) {
+  if (req.session.user_id) {
     const reqLongURL = req.body.longURL;
     const shortURL = req.params.shortURL;
     const editedURL = { longURL: reqLongURL, userID: req.session.user_id };
     urlDatabase[shortURL] = editedURL;
     res.redirect("/urls");
+  } else {
+    res.redirect("/login");
   }
+  
+
 });
 
 // ******** Redirection to longURL from the show page
